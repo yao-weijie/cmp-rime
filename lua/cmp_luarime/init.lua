@@ -5,9 +5,7 @@ local fn = vim.fn
 local cmp = require("cmp")
 local rimeIME = require("cmp_luarime.rimeIME")
 local utils = require("cmp_luarime.utils")
-local rime_status = false
-local key_offset
---
+local rime_enabled = false
 local defaults = {
     sopath = "librime.so",
     traits = {
@@ -22,12 +20,6 @@ local defaults = {
     },
     -- TODO
     max_candidates = 5,
-    mappings = {
-        select_2 = ";", -- 分号
-        select_3 = "'", -- 单引号
-        page_down = ".",
-        page_up = ",",
-    },
 }
 
 local traits = {
@@ -56,34 +48,9 @@ source.setup = function(opts)
     local traits_opts = vim.tbl_deep_extend("keep", traits, new_config.traits)
     rimeIME:initialize(traits_opts, false, utils.on_message)
 
-    -- set keymap
-    cmp.setup({
-        -- TODO
-        mapping = cmp.mapping.preset.insert({
-            [";"] = cmp.mapping(function(fallback)
-                return fallback()
-            end),
-            ["'"] = cmp.mapping(function(fallback)
-                return fallback()
-            end),
-
-            ["."] = cmp.mapping(function(fallback)
-                return fallback()
-            end),
-            [","] = cmp.mapping(function(fallback)
-                return fallback()
-            end),
-        }),
-    })
-    vim.keymap.set({ "n", "i" }, "<C-g>", source.toggle, { desc = "toggle luarime" })
-
-    -- cmp.event:on("menu_closed", function()
-    --     -- vim.notify("menu closed")
-    --     rimeIME:SessionCleanup(true)
-    -- end)
-    -- cmp.event:on("menu_opened", function()
-    --     vim.notify("menu opened")
-    -- end)
+    cmp.event:on("menu_closed", function()
+        rimeIME:SessionCleanup(true)
+    end)
     vim.api.nvim_create_autocmd("InsertLeave", {
         callback = function()
             rimeIME:SessionCleanup(true)
@@ -106,13 +73,47 @@ end
 function source:get_debug_name()
     return "luarime"
 end
+-- TODO
+source.mappings = {
+    toggle_menu = cmp.mapping(function(fallback)
+        if cmp.visible() then
+            cmp.abort()
+            if rimeIME.session or rimeIME.session:exist() then
+                rimeIME.session:destroy()
+            end
+        else
+            cmp.complete()
+        end
+    end),
+    confirm = cmp.mapping(function(fallback)
+        local selected_entry = cmp.core.view:get_selected_entry()
+        if selected_entry and selected_entry.source.name == "luarime" then
+            cmp.abort()
+            vim.api.nvim_input(" ")
+        elseif cmp.visible() then
+            cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true })
+        else
+            fallback()
+        end
+    end),
+    space_commit = cmp.mapping(function(fallback)
+        local selected_entry = cmp.core.view:get_selected_entry()
+        if selected_entry and selected_entry.source.name == "luarime" then
+            -- TODO:连续提交
+            cmp.confirm({ select = true })
+            cmp.close()
+        else
+            fallback()
+        end
+    end),
+    toggle = function()
+        rime_enabled = not rime_enabled
+        return rime_enabled
+    end,
+}
 
-source.toggle = function()
-    rime_status = not rime_status
-    return rime_status
-end
 source.status = function()
-    return rime_status
+    return rime_enabled
 end
 
 ---Return whether this source is available in the current context or not (optional).
@@ -134,7 +135,7 @@ function source:is_available()
     end
 
     -- 在其他地方手动控制
-    enable = enable or rime_status
+    enable = enable or rime_enabled
 
     return enable
 end
@@ -147,12 +148,13 @@ function source:get_keyword_pattern()
 end
 -- Return trigger characters for triggering completion. (Optional)
 function source:get_trigger_characters()
-    return vim.split("qwertyuiopasdfghjklzxcvbnm", "")
+    -- stylua: ignore start
+    return { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", }
+    -- stylua: ignore end
 end
 
 local function callback_candidates(keys, params, rime_context, callback)
     local rime_candidates = rime_context.menu.candidates
-    local menu_items = "" -- 用来调试查看的
     local cmp_items = {}
     local cursor = params.context.cursor
     for idx, candidate in ipairs(rime_candidates) do
@@ -191,7 +193,6 @@ local function callback_candidates(keys, params, rime_context, callback)
         menu_items = menu_items .. item.label .. "\n"
         table.insert(cmp_items, item)
     end
-    -- vim.notify(s)
     callback(cmp_items)
 end
 

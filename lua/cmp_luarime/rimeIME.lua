@@ -4,7 +4,7 @@ local utils = require("cmp_luarime.utils")
 
 local IsNULL = utils.IsNULL
 local IsFalse = utils.IsFalse
-local IsEmpty = utils.IsEmpty()
+local IsEmpty = utils.IsEmpty
 local toString = utils.toString
 local toBoolean = utils.toBoolean
 local toBool = utils.toBool
