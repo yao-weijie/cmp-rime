@@ -224,7 +224,6 @@ local function callback_candidates(keys, params, rime_context, callback)
                 },
             },
         }
-        menu_items = menu_items .. item.label .. "\n"
         table.insert(cmp_items, item)
     end
     callback(cmp_items)
