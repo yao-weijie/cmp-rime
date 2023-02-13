@@ -45,21 +45,53 @@ M.toPointer = function(s)
 end
 ----------------------------------------------------------------------------------------------------------
 -- 调试用
----@param menu table
-M.show_menu = function(menu)
+---@param composition table
+M.fmt_composition = function(composition)
+    if not composition then
+        return ""
+    end
 
+    local preedit = composition.preedit
+    if not preedit then
+        return ""
+    end
 
+    local s = ""
+    -- length, cursor_pos, sel_start, sel_end
+    s = s .. composition.preedit .. "\n"
+    -- s = s .. composition.cursor_pos .. "\n"
+    -- s = s .. composition.sel_start .. "\n"
+    -- s = s .. composition.sel_end .. "\n"
+
+    return s
 end
 
----@param composition table
-M.show_composition = function(composition)
+---@param menu table
+M.fmt_menu = function(menu)
+    local s = ""
+    s = s .. string.format("page: %d\n", menu.page_no)
+    for i, cdt in ipairs(menu.candidates) do
+        local comment = cdt.comment and cdt.comment or ""
+        s = s .. string.format("%d. %s %s \n", i, cdt.text, comment)
+    end
 
-
+    return s
 end
 
 ---param context table
-M.show_context = function(context)
+M.fmt_context = function(context)
+    if not context then
+        return "context is nil\n"
+    end
 
+    local s = ""
+    if context.composition then
+        s = s .. M.fmt_composition(context.composition)
+        s = s .. M.fmt_menu(context.menu)
+    else
+        s = "(not composing)\n"
+    end
+    return s
 end
 
 ----------------------------------------------------------------------------------------------------------

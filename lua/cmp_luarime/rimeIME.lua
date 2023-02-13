@@ -10,9 +10,7 @@ local toString = utils.toString
 local toBoolean = utils.toBoolean
 local toBool = utils.toBool
 
-local K_BackSpace = 0xff08
-local K_PgUp = 0xff55
-local K_PgDn = 0xff56
+local rime_initialized = false
 
 ------------------------------------------------------------------------------
 
@@ -213,7 +211,7 @@ end
 local function Composition(composition)
     local ret = {}
     ret.length = composition.length
-    ret.cursor = composition.cursor_pos + 1
+    ret.cursor_pos = composition.cursor_pos + 1
     ret.sel_start = composition.sel_start + 1
     ret.sel_end = composition.sel_end
     ret.preedit = composition.length > 0 and ffi.string(composition.preedit, ret.length) or nil
@@ -238,11 +236,12 @@ local mtSession = {
             return self.destroyed
         end,
         -- testing -------------------------------------------------------------------
+        -- 输入法输入的内容,在最终提交之前可以连续调用,表示为用户连续输入
         ---@param key_sequence string
         simulate = function(self, key_sequence)
             return toBoolean(self.api.simulate_key_sequence(self.id, key_sequence))
         end,
-        -- 处理按键
+        -- 处理按键,比如退格,翻页等动作
         ---@param mask integer
         ---@param keycode integer
         ---@return boolean
@@ -255,11 +254,12 @@ local mtSession = {
         commit = function(self)
             return toBoolean(self.api.commit_composition(self.id))
         end,
+        -- 清除当前输入
         clear = function(self)
             self.api.clear_composition(self.id)
         end,
 
-        -- 获取commit
+        -- 经过选词之后获取最终提交的commit
         ---@return string|nil
         Commit = function(self)
             local commit = StructCreateInit("RimeCommit[1]")
@@ -322,28 +322,6 @@ local mtSession = {
                 return ret
             end
         end,
-        PageDown = function(self)
-            local context = StructCreateInit("RimeContext[1]")
-            if toBoolean(self.api.get_context(self.id, context)) then
-                local menu = Menu(context[0].menu)
-                if not menu.is_last_page then
-                    self.api.process_key(self.id, K_PgDn, 0)
-                else
-                    return
-                end
-            end
-        end,
-        PageUp = function(self)
-            local context = StructCreateInit("RimeContext[1]")
-            if toBoolean(self.api.get_context(self.id, context)) then
-                local menu = Menu(context[0].menu)
-                if menu.page_no > 1 then
-                    self.api.process_key(self.id, K_PgUp, 0)
-                else
-                    return
-                end
-            end
-        end,
 
         ------------------------------------------------------------------------------
         --! get raw input
@@ -400,6 +378,15 @@ local mtSession = {
                     end
                 until not more
                 return lists
+            end
+        end,
+        ---@param option string
+        ---@param value string|nil if nil then get_option else set_option
+        Option = function(self, option, value)
+            if value == nil then
+                return toBoolean(self.api.get_option(self.id, option))
+            else
+                self.api.set_option(self.id, option, toBool(value))
             end
         end,
         ---@param prop string
@@ -605,15 +592,6 @@ local mtIME = {
         --config
         ------------------------------------------------------------------------------
         --runtime
-        ---@param option string
-        ---@param value string|nil if nil then get_option else set_option
-        Option = function(self, option, value)
-            if value == nil then
-                return toBoolean(self.api.get_option(self.id, option))
-            else
-                self.api.set_option(self.id, option, toBool(value))
-            end
-        end,
         ConfigCreate = function(self, init)
             local config = StructCreate("RimeConfig[1]", gc_config)
             if init then
@@ -667,4 +645,6 @@ return setmetatable({
     initialized = false,
     traits = nil,
     session = nil,
+    context = nil,
+    callback = nil,
 }, mtIME)
