@@ -1,3 +1,4 @@
+-- 本文件修改自https://github.com/zhaozg/rime_lua
 local ffi = require("ffi")
 local C = ffi.C
 local utils = require("cmp_luarime.utils")

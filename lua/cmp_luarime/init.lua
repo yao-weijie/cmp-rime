@@ -1,11 +1,12 @@
 local source = {}
 local config = {}
-local async = require("plenary.async")
 local fn = vim.fn
 local cmp = require("cmp")
 local rimeIME = require("cmp_luarime.rimeIME")
 local utils = require("cmp_luarime.utils")
 local rime_enabled = false
+local cmp_cb
+
 local defaults = {
     sopath = "librime.so",
     traits = {
@@ -106,6 +107,36 @@ source.mappings = {
             fallback()
         end
     end),
+
+    page_down = cmp.mapping(function(fallback)
+        if cmp.visible() and rimeIME.session and rimeIME.session:exist() then
+            rimeIME.session:PageDown()
+            -- 刷新context?
+        else
+            fallback()
+        end
+    end),
+    page_up = cmp.mapping(function(fallback)
+        if cmp.visible() and rimeIME.session and rimeIME.session:exist() then
+            rimeIME.session:PageUp()
+        else
+            fallback()
+        end
+    end),
+    select_2 = cmp.mapping(function(fallback)
+        if cmp.visible() and rimeIME.session and rimeIME.session:exist() then
+            rimeIME.session:Select(2, false)
+        else
+            fallback()
+        end
+    end),
+    select_3 = cmp.mapping(function(fallback)
+        if cmp.visible() and rimeIME.session and rimeIME.session:exist() then
+            rimeIME.session:Select(2, false)
+        else
+            fallback()
+        end
+    end),
     toggle = function()
         rime_enabled = not rime_enabled
         return rime_enabled
@@ -144,6 +175,9 @@ end
 ---If this is ommited, nvim-cmp will use a default keyword pattern. See |cmp-config.completion.keyword_pattern|.
 ---@return string
 function source:get_keyword_pattern()
+    -- vim 正则而非lua 的正则
+    -- 如果知道前面有几个非输入在字符,那就可以指定一定数量?
+    -- return [[\l\{2,}]]
     return [[\l\+]]
 end
 -- Return trigger characters for triggering completion. (Optional)
@@ -196,6 +230,17 @@ local function callback_candidates(keys, params, rime_context, callback)
     callback(cmp_items)
 end
 
+local function get_candidates(...)
+    local rime_context = rimeIME.session:Context()
+end
+
+---Executed after the item was selected.
+---@param completion_item lsp.CompletionItem
+---@param callback fun(completion_item: lsp.CompletionItem|nil)
+function source:execute(completion_item, callback)
+    callback(completion_item)
+end
+
 ---Invoke completion (required).
 ---@param params cmp.SourceCompletionApiParams
 ---@param callback fun(response: lsp.CompletionResponse|nil)
@@ -204,14 +249,34 @@ function source:complete(params, callback)
     -- 怎么设计规则让插件从当前位置开始算起呢
     -- vim.notify("rime matched")
     local keys = string.sub(params.context.cursor_before_line, params.offset)
+    cmp_cb = callback
 
     if rimeIME.initialized then
+        -- rime正在连续输入中
+        -- if rimeIME.session and rimeIME.session:exist() then
+        --     -- 相比刚才增加还是减少了输入按键?
+        --     callback()
+        --     return
+        -- else
+        --     -- 开始输入,先不考虑前面有英文字符的情况
+        --     -- 如果keys>1, 说明前面有英文字符,记录此时位置作为input起始位置
+        --     rimeIME.session = rimeIME:SessionCreate()
+        --     rimeIME.cmp = {
+        --         keys = keys,
+        --         callback = callback,
+        --     }
+        --     rimeIME.cmp_cb = callback
+        --     rimeIME.session:simulate(keys)
+        --     local rime_context = rimeIME.session:Context()
+        --     callback_candidates(keys, params, rime_context, callback)
+        --     -- callback(get_candidates(rimeIME, keys, params))
+        -- end
+
+        rimeIME.session = rimeIME:SessionCreate()
         local session = rimeIME:SessionCreate()
         session:simulate(keys)
         local rime_context = session:Context()
-
         callback_candidates(keys, params, rime_context, callback)
-
         session:destroy()
     end
 end
