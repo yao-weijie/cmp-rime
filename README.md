@@ -45,7 +45,7 @@ require("cmp_rime").setup({
         shared_data_dir = "/usr/share/rime-data",
         -- 最好新建一个独立的用户目录, 否则很有可能出问题
         user_data_dir = vim.fn.expand("~/.local/share/cmp-rime"),
-        log_dir = "/tmp/cmp-rime/log",
+        log_dir = "/tmp/cmp-rime",
     },
     enable = {
         global = false, -- 全局开启, 不建议
@@ -72,10 +72,11 @@ require("cmp").setup({
         ["<Space>"] = require("cmp_rime").mappings.space_commit,
         ["<CR>"] = require("cmp_rime").mappings.confirm,
 
-        -- 或者设置为 cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
-        --            cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
         ["<C-n>"] = cmp_rime.mapping.select_next_item,
         ["<C-p>"] = cmp_rime.mapping.select_prev_item,
+        -- 或者这样, 目前是等效的
+        ["<C-n>"] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }),
+        ["<C-p>"] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }),
 
         ["."] = require("cmp_rime").mapping.page_down,
         [","] = require("cmp_rime").mapping.page_up,
