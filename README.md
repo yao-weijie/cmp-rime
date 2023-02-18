@@ -67,8 +67,6 @@ require("cmp").setup({
             ...
         },
     },
-},
-
     mapping = cmp.mapping.preset.insert({
         ["<C-Space>"] = require("cmp_rime").mappings.toggle_menu,
         ["<Space>"] = require("cmp_rime").mappings.space_commit,
