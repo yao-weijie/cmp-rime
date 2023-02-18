@@ -1,7 +1,7 @@
 -- 本文件修改自https://github.com/zhaozg/rime_lua
 local ffi = require("ffi")
 local C = ffi.C
-local utils = require("cmp_luarime.utils")
+local utils = require("cmp_rime.utils")
 
 local IsNULL = utils.IsNULL
 local IsFalse = utils.IsFalse
@@ -243,23 +243,23 @@ local mtSession = {
         end,
         -- 处理按键,比如退格,翻页等动作
         ---@param mask integer
-        ---@param keycode integer
+        ---@param keycode integer: 八进制数,比如backspace 是0xff08
         ---@return boolean
         process = function(self, keycode, mask)
             mask = mask or 0
             return toBoolean(self.api.process_key(self.id, keycode, mask))
-        end,
-        -- 判断是否有未提交的内容
-        ---@return boolean true if there is unread commit text
-        commit = function(self)
-            return toBoolean(self.api.commit_composition(self.id))
         end,
         -- 清除当前输入
         clear = function(self)
             self.api.clear_composition(self.id)
         end,
 
-        -- 经过选词之后获取最终提交的commit
+        -- 直接提交
+        ---@return boolean true if there is unread commit text
+        commit = function(self)
+            return toBoolean(self.api.commit_composition(self.id))
+        end,
+        -- 经过选词之后获取最终提交的commit,提交完之前返回nil
         ---@return string|nil
         Commit = function(self)
             local commit = StructCreateInit("RimeCommit[1]")
@@ -275,11 +275,11 @@ local mtSession = {
                 ret.schema_id = ffi.string(status.schema_id)
                 ret.schema_name = ffi.string(status.schema_name)
 
-                ret.disabled = toBoolean(status.is_disabled)
-                ret.composing = toBoolean(status.is_composing)
-                ret.ascii_mode = toBoolean(status.is_ascii_mode)
-                ret.full_shape = toBoolean(status.is_full_shape)
-                ret.simplified = toBoolean(status.is_simplified)
+                ret.is_disabled = toBoolean(status.is_disabled)
+                ret.is_composing = toBoolean(status.is_composing)
+                ret.is_ascii_mode = toBoolean(status.is_ascii_mode)
+                ret.is_full_shape = toBoolean(status.is_full_shape)
+                ret.is_simplified = toBoolean(status.is_simplified)
 
                 return ret
             end
@@ -482,6 +482,7 @@ local mtIME = {
                 api.join_maintenance_thread()
             end
             self.initialized = true
+            rime_initialized = true
             return true
         end,
         -- librime 释放进程
@@ -622,8 +623,8 @@ local mtIME = {
             end
         end,
     },
-    __call = function(self, hpath, sopath)
-        if self.initialized then
+    __call = function(self, hpath, libpath)
+        if rime_initialized then
             return
         end
 
@@ -631,7 +632,7 @@ local mtIME = {
         local ctx = f:read("*a")
         f:close()
 
-        self.rime = ffi.load(sopath)
+        self.rime = ffi.load(libpath)
         ffi.cdef(ctx)
         self.api = self.rime.rime_get_api()
 
@@ -645,6 +646,5 @@ return setmetatable({
     initialized = false,
     traits = nil,
     session = nil,
-    context = nil,
     callback = nil,
 }, mtIME)

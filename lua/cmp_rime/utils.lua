@@ -97,11 +97,11 @@ end
 ----------------------------------------------------------------------------------------------------------
 M.on_message = function(context_object, session_id, message_type, message_value)
     local msg = string.format("[%s]: %s", M.toString(message_type), M.toString(message_value))
-    vim.notify(msg, nil, { title = "cmp-luarime" })
+    vim.notify(msg, nil, { title = "cmp-rime" })
 end
 
 M.find_hpath = function()
-    local dirname = string.sub(debug.getinfo(1).source, 2, #"lua/cmp_luarime/rimeIME.lua" * -1)
+    local dirname = string.sub(debug.getinfo(1).source, 2, #"lua/cmp_rime/rimeIME.lua" * -1)
     return dirname .. "/src/rime.h"
 end
 
