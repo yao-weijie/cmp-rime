@@ -11,6 +11,8 @@
 - [neovim](https://github.com/neovim/neovim)
 - [nvim-cmp](https://github.com/hrsh7th/nvim-cmp)
 - [librime](https://github.com/rime/librime)
+  - 以 debian 系为例, 从软件源安装 librime-bin 和 rime-data-<方案>
+  - 在用户目录放置自己的输入方案/设置和词库
 
 ## 特性
 
@@ -28,6 +30,8 @@
 
 - **跨平台**, 理论上只要有 librime 链接库就可以用, 但我没在 windows 和 mac 上测试过
 
+- 基于 rime 的输入中自动调整词频
+
 - 可在多个 neovim 实例中使用
 
 - 和其他 source 共存
@@ -37,8 +41,7 @@
 ```lua
 -- default settings
 require("cmp_rime").setup({
-    -- linux/mac用户只需要从软件源中安装rime
-    -- windows用户可能需要指定librime.dll路径, 没测试过
+    -- librime.so or librime.dll or 完整路径
     libpath = "librime.so",
     traits = {
         -- windows 用户的在小狼毫的程序文件夹
@@ -52,6 +55,7 @@ require("cmp_rime").setup({
         comment = true, -- 总是在comment中开启
         -- 其他情况手动开关
     },
+    preselect = false, -- 预选中rime 返回的第一项,可以直接空格上屏
     auto_commit = false, -- 五笔/音形类方案可用, 唯一候选项自动上屏
     number_select = 5, -- 映射1-5为数字选词, 最大支持到9, 0表示禁用
 })
@@ -72,11 +76,8 @@ require("cmp").setup({
         ["<Space>"] = require("cmp_rime").mappings.space_commit,
         ["<CR>"] = require("cmp_rime").mappings.confirm,
 
-        ["<C-n>"] = cmp_rime.mapping.select_next_item,
-        ["<C-p>"] = cmp_rime.mapping.select_prev_item,
-        -- 或者这样, 目前是等效的
-        ["<C-n>"] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }),
-        ["<C-p>"] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }),
+        ["<C-n>"] = require("cmp_rime").mapping.select_next_item,
+        ["<C-p>"] = require("cmp_rime").mapping.select_prev_item,
 
         ["."] = require("cmp_rime").mapping.page_down,
         [","] = require("cmp_rime").mapping.page_up,
@@ -100,11 +101,13 @@ end, { desc = "toggle rime" })
 
 - 当光标前面有英文时, 想要输入中文会把前面的英文纳入匹配范围
 
-- 暂时没法自动调词频, 应该是我写法的问题
+- ~~暂时没法自动调词频, 应该是我写法的问题~~
 
 - 由于 cmp 的排序机制, rime 返回的补全项并不完全按顺序排列, 所以有时看到第一项的位置上下乱跳
 
 - 和 librime-lua 不兼容, 会导致本插件启动时 neovim 直接崩溃
+
+- 当乱序输入而无法正确解析时, 会导致和 rime 交互时造成 cmp 卡顿
 
 ## 画饼
 
