@@ -35,23 +35,11 @@ local traits = {
     min_log_level = 2,
 }
 
-vim.api.nvim_create_autocmd({ "FocusLost", "InsertLeave", "TermOpen" }, {
-    callback = function()
-        _RIME_IME:SessionCleanup(true)
-    end,
-})
-vim.api.nvim_create_autocmd({ "VimLeave" }, {
-    callback = function()
-        _RIME_IME:SessionCleanup(true)
-        _RIME_IME:finalize()
-    end,
-})
-
---------------------------------------------------------------------------------
 ---@return string
 function source:get_debug_name()
     return "rime"
 end
+--------------------------------------------------------------------------------
 
 -- BUG 长句乱序词解析错误
 local function callback_candidates(opts)
@@ -407,6 +395,18 @@ source.setup = function(opts)
             }),
         })
     end
+
+    vim.api.nvim_create_autocmd({ "FocusLost", "InsertLeave", "TermOpen" }, {
+        callback = function()
+            _RIME_IME:SessionCleanup(true)
+        end,
+    })
+    vim.api.nvim_create_autocmd({ "VimLeave" }, {
+        callback = function()
+            _RIME_IME:SessionCleanup(true)
+            _RIME_IME:finalize()
+        end,
+    })
 end
 
 source.new = function()
