@@ -42,6 +42,7 @@ vim.api.nvim_create_autocmd({ "FocusLost", "InsertLeave", "TermOpen" }, {
 })
 vim.api.nvim_create_autocmd({ "VimLeave" }, {
     callback = function()
+        _RIME_IME:SessionCleanup(true)
         _RIME_IME:finalize()
     end,
 })
