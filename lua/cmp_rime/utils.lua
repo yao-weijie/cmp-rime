@@ -50,18 +50,12 @@ M.fmt_composition = function(composition)
     if not composition then
         return ""
     end
-
-    local preedit = composition.preedit
-    if not preedit then
-        return ""
-    end
-
     local s = ""
-    -- length, cursor_pos, sel_start, sel_end
-    s = s .. composition.preedit .. "\n"
-    -- s = s .. composition.cursor_pos .. "\n"
-    -- s = s .. composition.sel_start .. "\n"
-    -- s = s .. composition.sel_end .. "\n"
+
+    s = s .. "preedit: "
+    s = s .. (composition.preedit and composition.preedit or "")
+
+    s = s .. "\n-------------------------\n"
 
     return s
 end
@@ -69,11 +63,15 @@ end
 ---@param menu table
 M.fmt_menu = function(menu)
     local s = ""
-    s = s .. string.format("page: %d\n", menu.page_no)
+    if menu.num_candidates == 0 then
+        s = s .. "(no candidates)\n"
+    end
+
     for i, cdt in ipairs(menu.candidates) do
         local comment = cdt.comment and cdt.comment or ""
         s = s .. string.format("%d. %s %s \n", i, cdt.text, comment)
     end
+    s = s .. string.format("page: %d\n", menu.page_no)
 
     return s
 end
@@ -85,6 +83,10 @@ M.fmt_context = function(context)
     end
 
     local s = ""
+    s = s .. "preview: "
+    s = s .. (context.commit_text_preview and context.commit_text_preview or "")
+    s = s .. "\n-------------------------\n"
+
     if context.composition then
         s = s .. M.fmt_composition(context.composition)
         s = s .. M.fmt_menu(context.menu)
