@@ -53,6 +53,7 @@ require("cmp_rime").setup({
     enable = {
         global = false, -- 全局开启, 不建议
         comment = true, -- 总是在comment中开启
+        math = false, -- 总是在latex 的公式环境中禁用, 依赖vimtex
         -- 其他情况手动开关
     },
     preselect = false, -- 预选中rime 返回的第一项,可以直接空格上屏

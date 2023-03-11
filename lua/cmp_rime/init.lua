@@ -21,6 +21,7 @@ local defaults = {
     enable = {
         global = false,
         comment = true,
+        math = false,
     },
     preselect = false,
     auto_commit = false,
@@ -30,7 +31,7 @@ local defaults = {
 local traits = {
     distribution_name = "Rime",
     distribution_code_name = "Rime",
-    distribution_version = "0.1",
+    distribution_version = "0.2.1",
     app_name = "rime.cmp-rime",
     min_log_level = 2,
 }
@@ -329,6 +330,10 @@ function source:is_available()
     local context = require("cmp.config.context")
     if _CONFIG.enable.comment then
         enable = enable or context.in_syntax_group("Comment") or context.in_treesitter_capture("comment")
+    end
+
+    if vim.bo.filetype == "tex" and _CONFIG.enable.math == false and vim.g.loaded_vimtex then
+        return vim.fn.call("vimtex#syntax#in_mathzone", {}) == 0
     end
 
     -- 在其他地方手动控制
