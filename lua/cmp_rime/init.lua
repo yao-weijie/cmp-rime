@@ -332,8 +332,13 @@ function source:is_available()
         enable = enable or context.in_syntax_group("Comment") or context.in_treesitter_capture("comment")
     end
 
-    if vim.bo.filetype == "tex" and _CONFIG.enable.math == false and vim.g.loaded_vimtex then
-        return vim.fn.call("vimtex#syntax#in_mathzone", {}) == 0
+    if
+        vim.bo.filetype == "tex"
+        and _CONFIG.enable.math == false
+        and vim.g.loaded_vimtex
+        and vim.fn.call("vimtex#syntax#in_mathzone", {}) == 1
+    then
+        return false
     end
 
     -- 在其他地方手动控制
