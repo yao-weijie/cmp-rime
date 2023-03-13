@@ -68,7 +68,7 @@ require("cmp").setup({
     },
     sorting = {
         comparators = {
-            require("cmp.config.compare").sort_text, -- 这个放第一个, 其他的随意
+            require("cmp.config.compare").order, -- 这个放第一个, 其他的随意
             ...
         },
     },
@@ -104,7 +104,7 @@ end, { desc = "toggle rime" })
 
 - ~~暂时没法自动调词频, 应该是我写法的问题~~
 
-- 由于 cmp 的排序机制, rime 返回的补全项并不完全按顺序排列, 所以有时看到第一项的位置上下乱跳
+- ~~由于 cmp 的排序机制, rime 返回的补全项并不完全按顺序排列, 所以有时看到第一项的位置上下乱跳~~
 
 - 和 librime-lua 不兼容, 会导致本插件启动时 neovim 直接崩溃
 
