@@ -68,7 +68,7 @@ require("cmp").setup({
     },
     sorting = {
         comparators = {
-            reguire("cmp_rime.compare").order, -- 这个放第一个, 其他的随意
+            require("cmp_rime.compare").order, -- 这个放第一个, 其他的随意
             ...
         },
     },
