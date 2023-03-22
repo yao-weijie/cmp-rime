@@ -12,7 +12,9 @@
 - [nvim-cmp](https://github.com/hrsh7th/nvim-cmp)
 - [librime](https://github.com/rime/librime)
   - 以 debian 系为例, 从软件源安装 librime-bin 和 rime-data-<方案>
+  - 如果自动安装了`librime-plugins-lua`, 一定要卸载, 否则插件不可用
   - 在用户目录放置自己的输入方案/设置和词库
+  - Arch 系暂时不可用, 原因不明
 
 ## 特性
 
@@ -109,6 +111,8 @@ end, { desc = "toggle rime" })
 - 和 librime-lua 不兼容, 会导致本插件启动时 neovim 直接崩溃
 
 - 当乱序输入而无法正确解析时, 会导致和 rime 交互时造成 cmp 卡顿
+
+- Arch 系暂时不可用, 原因不明
 
 ## 画饼
 
